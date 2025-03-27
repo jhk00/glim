@@ -1,0 +1,7 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/jh/baqu4ws/install/lib/python3.11/site-packages",
+        "/opt/mamba/envs/ros2/lib/python311/site-packages",
+        "/opt/mamba/envs/ros2/lib/python3.11/site-packages"
+    ]
+}

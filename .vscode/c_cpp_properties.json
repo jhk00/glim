@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/jh/baqu4ws/install/include/**",
+        "/opt/mamba/envs/ros2/include/**",
+        "/home/jh/baqu4ws/src/perception/clustering_cxx/include/**",
+        "/home/jh/baqu4ws/src/perception/slam_mine/glim/include/**",
+        "/home/jh/baqu4ws/src/perception/slam_mine/glim_ros2/include/**",
+        "/home/jh/baqu4ws/src/perception/slam_mine/gtsam_points/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
