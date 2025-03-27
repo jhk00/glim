@@ -1,0 +1,175 @@
+diff --git a/config/config.json b/config/config.json
+index e78b55d..6b4a580 100644
+--- a/config/config.json
++++ b/config/config.json
+@@ -6,8 +6,8 @@
+     "config_viewer": "config_viewer.json",
+     "config_sensors": "config_sensors.json",
+     "config_preprocess": "config_preprocess.json",
+-    "config_odometry": "config_odometry_gpu.json",
+-    "config_sub_mapping": "config_sub_mapping_gpu.json",
+-    "config_global_mapping": "config_global_mapping_gpu.json"
++    "config_odometry": "config_odometry_cpu.json",
++    "config_sub_mapping": "config_sub_mapping_cpu.json",
++    "config_global_mapping": "config_global_mapping_cpu.json"
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/config/config_global_mapping_cpu.json b/config/config_global_mapping_cpu.json
+index 9267942..7d14998 100644
+--- a/config/config_global_mapping_cpu.json
++++ b/config/config_global_mapping_cpu.json
+@@ -3,12 +3,12 @@
+   // See config_global_mapping_gpu.json for the full description of the parameters.
+   */
+   "global_mapping": {
+-    "so_name": "libglobal_mapping.so",
++    "so_name": "libglobal_mapping.dylib",
+     "enable_imu": true,
+     "enable_optimization": true,
+     "init_pose_damping_scale": 1e10,
+     // Relative pose factors
+-    "create_between_factors": true,
++    "create_between_factors": false,
+     "between_registration_type": "GICP",
+     // Registration error factors
+     "registration_error_factor_type": "VGICP",
+@@ -23,4 +23,4 @@
+     "isam2_relinearize_skip": 1,
+     "isam2_relinearize_thresh": 0.1
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/config/config_odometry_cpu.json b/config/config_odometry_cpu.json
+index 80d5ab4..8f6e118 100644
+--- a/config/config_odometry_cpu.json
++++ b/config/config_odometry_cpu.json
+@@ -6,7 +6,7 @@
+   // isam2_relinearize_thresh    :
+   */
+   "odometry_estimation": {
+-    "so_name": "libodometry_estimation_cpu.so",
++    "so_name": "libodometry_estimation_cpu.dylib",
+     // Initialization params
+     "initialization_mode": "LOOSE",
+     "initialization_window_size": 3.0,
+@@ -33,4 +33,4 @@
+     "save_imu_rate_trajectory": true,
+     "num_threads": 2
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/config/config_preprocess.json b/config/config_preprocess.json
+index 0861226..8bb6dd3 100644
+--- a/config/config_preprocess.json
++++ b/config/config_preprocess.json
+@@ -23,6 +23,6 @@
+     "outlier_removal_k": 10,
+     "outlier_std_mul_factor": 1.0,
+     "k_correspondences": 10,
+-    "num_threads": 2
++    "num_threads": 4
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/config/config_ros.json b/config/config_ros.json
+index 90dd07e..d304f46 100644
+--- a/config/config_ros.json
++++ b/config/config_ros.json
+@@ -42,21 +42,19 @@
+     // TF config
+     "imu_frame_id": "imu",
+     "lidar_frame_id": "lidar",
+-    "base_frame_id": "",
++    "base_frame_id": "base_link",
+     "odom_frame_id": "odom",
+     "map_frame_id": "map",
+     "publish_imu2lidar": true,
+     "tf_time_offset": 1e-6,
+     // Extension modules
+     "extension_modules": [
+-      "libmemory_monitor.so",
+-      "libstandard_viewer.so",
+-      "librviz_viewer.so"
++      "librviz_viewer.dylib"
+       // "libimu_validator.so"
+     ],
+     // Topics
+-    "imu_topic": "/os_cloud_node/imu",
+-    "points_topic": "/os_cloud_node/points",
+-    "image_topic": "/image"
++    "imu_topic": "/ouster/imu",
++    "points_topic": "/ouster/points",
++    "image_topic": "/usb_cam/image_raw"
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/config/config_sub_mapping_cpu.json b/config/config_sub_mapping_cpu.json
+index 0aed2ee..886725d 100644
+--- a/config/config_sub_mapping_cpu.json
++++ b/config/config_sub_mapping_cpu.json
+@@ -3,7 +3,7 @@
+   // See config_sub_mapping_gpu.json for the full description of the parameters.
+   */
+   "sub_mapping": {
+-    "so_name": "libsub_mapping.so",
++    "so_name": "libsub_mapping.dylib",
+     "enable_imu": true,
+     "enable_optimization": false,
+     // Keyframe update strategy
+@@ -26,4 +26,4 @@
+     "submap_downsample_resolution": 0.3,
+     "submap_voxel_resolution": 0.5
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/include/glim/util/convert_to_string.hpp b/include/glim/util/convert_to_string.hpp
+index 1249bf3..38a52d3 100644
+--- a/include/glim/util/convert_to_string.hpp
++++ b/include/glim/util/convert_to_string.hpp
+@@ -54,4 +54,4 @@ inline std::string convert_to_string(const Eigen::Isometry3d& pose) {
+   const Eigen::Quaterniond quat(pose.linear());
+   return fmt::format("se3({:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f})", trans.x(), trans.y(), trans.z(), quat.x(), quat.y(), quat.z(), quat.w());
+ }
+-}  // namespace glim
+\ No newline at end of file
++}  // namespace glim
+diff --git a/src/glim/odometry/odometry_estimation_ct.cpp b/src/glim/odometry/odometry_estimation_ct.cpp
+index 8c34db7..0038671 100644
+--- a/src/glim/odometry/odometry_estimation_ct.cpp
++++ b/src/glim/odometry/odometry_estimation_ct.cpp
+@@ -121,7 +121,7 @@ EstimationFrame::ConstPtr OdometryEstimationCT::insert_frame(const PreprocessedF
+     gtsam::Vector6 last_twist = gtsam::Vector6::Zero();
+     if (current >= 2) {
+       if (!frames[last] || !frames[last - 1]) {
+-        logger->warn("neither frames[last]={} nor frames[last - 1]={} is released!!", fmt::ptr(frames[last]), fmt::ptr(frames[last - 1]));
++        logger->warn("neither frames[last]={} nor frames[last - 1]={} is released!!", fmt::ptr(frames[last].get()), fmt::ptr(frames[last - 1].get()));
+         logger->warn("there might be a large time gap between point cloud frames");
+       } else {
+         const double delta_time = (frames[last]->stamp + frames[last]->frame->times[frames[last]->frame->size() - 1]) - frames[last - 1]->stamp;
+diff --git a/src/glim/util/config.cpp b/src/glim/util/config.cpp
+index 2a24a84..355ec96 100644
+--- a/src/glim/util/config.cpp
++++ b/src/glim/util/config.cpp
+@@ -38,7 +38,7 @@ DEFINE_CONFIG_IO_SPECIALIZATION(int)
+ DEFINE_CONFIG_IO_SPECIALIZATION(float)
+ DEFINE_CONFIG_IO_SPECIALIZATION(double)
+ DEFINE_CONFIG_IO_SPECIALIZATION(std::string)
+-DEFINE_CONFIG_IO_SPECIALIZATION(std::vector<bool>)
++// DEFINE_CONFIG_IO_SPECIALIZATION(std::vector<bool>)
+ DEFINE_CONFIG_IO_SPECIALIZATION(std::vector<int>)
+ DEFINE_CONFIG_IO_SPECIALIZATION(std::vector<double>)
+ DEFINE_CONFIG_IO_SPECIALIZATION(std::vector<std::string>)
+@@ -91,4 +91,4 @@ void GlobalConfig::dump(const std::string& path) {
+   spdlog::debug("dumping global config done");
+ }
+ 
+-}  // namespace glim
+\ No newline at end of file
++}  // namespace glim
